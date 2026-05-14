@@ -11,22 +11,24 @@ const lines = fs.readFileSync(CSV_PATH, 'utf8').split('\n').filter(Boolean);
 lines.shift(); // remove header
 
 const rows = lines.map(line => {
-  // Handle commas inside quoted fields
-  const cols = [];
-  let cur = '', inQ = false;
-  for (const ch of line.replace(/\r$/, '')) {
-    if (ch === '"') { inQ = !inQ; continue; }
-    if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; continue; }
-    cur += ch;
-  }
-  cols.push(cur.trim());
-  const [pid, name, cat, text, rating, ts, rid, lang] = cols;
-  return { pid, name, cat, text: text.replace(/'/g, "\\'"), rating: parseInt(rating), ts, rid, lang };
+    // Handle commas inside quoted fields
+    const cols = [];
+    let cur = '',
+        inQ = false;
+    for (const ch of line.replace(/\r$/, '')) {
+        if (ch === '"') { inQ = !inQ; continue; }
+        if (ch === ',' && !inQ) { cols.push(cur.trim());
+            cur = ''; continue; }
+        cur += ch;
+    }
+    cols.push(cur.trim());
+    const [pid, name, cat, text, rating, ts, rid, lang] = cols;
+    return { pid, name, cat, text: text.replace(/'/g, "\\'"), rating: parseInt(rating), ts, rid, lang };
 });
 
 // ── Write csvRows.ts ─────────────────────────────────────────────────────────
 const tuples = rows.map(r =>
-  `  ['${r.pid}','${r.name}','${r.cat}','${r.text}',${r.rating},'${r.ts}','${r.rid}','${r.lang}'],`
+    `  ['${r.pid}','${r.name}','${r.cat}','${r.text}',${r.rating},'${r.ts}','${r.rid}','${r.lang}'],`
 ).join('\n');
 
 fs.writeFileSync(OUT_ROWS, `// Auto-generated from app/dataset/data.csv — DO NOT EDIT MANUALLY
@@ -37,57 +39,63 @@ console.log(`✅ csvRows.ts written — ${rows.length} rows`);
 
 // ── Helpers for mockData ─────────────────────────────────────────────────────
 function mapLang(l) {
-  if (l.includes('hindi')) return 'hi';
-  if (l.includes('kannada')) return 'kn';
-  if (l.includes('multilingual')) return 'mixed';
-  return 'en';
+    if (l.includes('hindi')) return 'hi';
+    if (l.includes('kannada')) return 'kn';
+    if (l.includes('multilingual')) return 'mixed';
+    return 'en';
 }
+
 function mapPlatform(rid) {
-  const n = parseInt(rid.replace('R',''), 10);
-  return ['amazon','flipkart','youtube','twitter','amazon'][n % 5];
+    const n = parseInt(rid.replace('R', ''), 10);
+    return ['amazon', 'flipkart', 'youtube', 'twitter', 'amazon'][n % 5];
 }
+
 function sentiment(r) { return r <= 2 ? 'negative' : r === 3 ? 'neutral' : 'positive'; }
-function danger(r, sarc) { const b = r===1?85:r===2?65:r===3?30:r===4?12:5; return Math.min(100,b+(sarc?8:0)); }
-function risk(d, cat) { const m = cat==='Electronics'?4500:cat==='Fashion'?2000:2800; return d>50?d*m:0; }
+
+function danger(r, sarc) { const b = r === 1 ? 85 : r === 2 ? 65 : r === 3 ? 30 : r === 4 ? 12 : 5; return Math.min(100, b + (sarc ? 8 : 0)); }
+
+function risk(d, cat) { const m = cat === 'Electronics' ? 4500 : cat === 'Fashion' ? 2000 : 2800; return d > 50 ? d * m : 0; }
+
 function features(cat, text, sent) {
-  const l = text.toLowerCase(), f = [];
-  if (l.includes('heat')||l.includes('hot')||l.includes('overheat')) f.push({name:'Heating',sentiment:'negative',confidence:0.93});
-  if (l.includes('battery')||l.includes('drain')||l.includes('charge')) f.push({name:'Battery',sentiment:l.includes('good')||l.includes('long')?'positive':'negative',confidence:0.90});
-  if (l.includes('camera')||l.includes('photo')||l.includes('picture')) f.push({name:'Camera',sentiment:sent,confidence:0.87});
-  if (l.includes('sound')||l.includes('bass')||l.includes('audio')) f.push({name:'Sound',sentiment:sent,confidence:0.88});
-  if (l.includes('comfort')||l.includes('fit ')||l.includes('fabric')) f.push({name:'Comfort',sentiment:sent,confidence:0.85});
-  if (l.includes('quality')||l.includes('fake')||l.includes('original')) f.push({name:'Build Quality',sentiment:sent,confidence:0.82});
-  if (l.includes('deliver')||l.includes('packaging')||l.includes('box')) f.push({name:'Delivery',sentiment:sent,confidence:0.79});
-  if (l.includes('price')||l.includes('worth')||l.includes('expensive')) f.push({name:'Value',sentiment:sent,confidence:0.80});
-  if (!f.length) f.push({name:cat==='Electronics'?'Performance':cat==='Fashion'?'Build Quality':'Functionality',sentiment:sent,confidence:0.75});
-  return f;
+    const l = text.toLowerCase(),
+        f = [];
+    if (l.includes('heat') || l.includes('hot') || l.includes('overheat')) f.push({ name: 'Heating', sentiment: 'negative', confidence: 0.93 });
+    if (l.includes('battery') || l.includes('drain') || l.includes('charge')) f.push({ name: 'Battery', sentiment: l.includes('good') || l.includes('long') ? 'positive' : 'negative', confidence: 0.90 });
+    if (l.includes('camera') || l.includes('photo') || l.includes('picture')) f.push({ name: 'Camera', sentiment: sent, confidence: 0.87 });
+    if (l.includes('sound') || l.includes('bass') || l.includes('audio')) f.push({ name: 'Sound', sentiment: sent, confidence: 0.88 });
+    if (l.includes('comfort') || l.includes('fit ') || l.includes('fabric')) f.push({ name: 'Comfort', sentiment: sent, confidence: 0.85 });
+    if (l.includes('quality') || l.includes('fake') || l.includes('original')) f.push({ name: 'Build Quality', sentiment: sent, confidence: 0.82 });
+    if (l.includes('deliver') || l.includes('packaging') || l.includes('box')) f.push({ name: 'Delivery', sentiment: sent, confidence: 0.79 });
+    if (l.includes('price') || l.includes('worth') || l.includes('expensive')) f.push({ name: 'Value', sentiment: sent, confidence: 0.80 });
+    if (!f.length) f.push({ name: cat === 'Electronics' ? 'Performance' : cat === 'Fashion' ? 'Build Quality' : 'Functionality', sentiment: sent, confidence: 0.75 });
+    return f;
 }
 
 // ── Build MOCK_REVIEWS ───────────────────────────────────────────────────────
 const reviews = rows.map(r => {
-  const sent = sentiment(r.rating);
-  const sarc = r.lang === 'sarcastic';
-  const d = danger(r.rating, sarc);
-  const feats = features(r.cat, r.text, sent);
-  return {
-    id: r.rid.toLowerCase(),
-    platform: mapPlatform(r.rid),
-    rating: r.rating,
-    text: r.text,
-    language: mapLang(r.lang),
-    sentiment: sent,
-    isSarcastic: sarc,
-    sarcasticConfidence: sarc ? 0.88 : 0.07,
-    features: feats,
-    dangerScore: d,
-    revenueRisk: risk(d, r.cat),
-    highlights: feats.map(f => ({word: f.name.toLowerCase(), sentiment: f.sentiment})),
-    productCategory: r.cat.replace('_',' '),
-    brandName: r.name,
-    author: r.rid,
-    likes: Math.floor(d * 2.5),
-    createdAt: new Date(r.ts).toISOString(),
-  };
+    const sent = sentiment(r.rating);
+    const sarc = r.lang === 'sarcastic';
+    const d = danger(r.rating, sarc);
+    const feats = features(r.cat, r.text, sent);
+    return {
+        id: r.rid.toLowerCase(),
+        platform: mapPlatform(r.rid),
+        rating: r.rating,
+        text: r.text,
+        language: mapLang(r.lang),
+        sentiment: sent,
+        isSarcastic: sarc,
+        sarcasticConfidence: sarc ? 0.88 : 0.07,
+        features: feats,
+        dangerScore: d,
+        revenueRisk: risk(d, r.cat),
+        highlights: feats.map(f => ({ word: f.name.toLowerCase(), sentiment: f.sentiment })),
+        productCategory: r.cat.replace('_', ' '),
+        brandName: r.name,
+        author: r.rid,
+        likes: Math.floor(d * 2.5),
+        createdAt: new Date(r.ts).toISOString(),
+    };
 });
 
 const reviewsJson = JSON.stringify(reviews, null, 2);
