@@ -22,20 +22,27 @@ Solution:
 
 What is VoiceMap?
 VoiceMap is an AI system that protects your brand before damage happens. Not just another review dashboard - a complete brand protection system.
+
 1.READS
 Every review across platforms
+
 2.CLEANS
 Removes bots and fake reviews
+
 3.SCORES
 Danger level per complaint
+
 4.PREDICTS
 What will go viral next
+
 5.COMPARES
 Compare with other platforms
+
 6.RESPONDS
 Auto writes brand replies
 7.ALERTS
 WhatsApp to manager instantly
+
 8.ROADMAPS
 Tells team exactly what to fix
 
